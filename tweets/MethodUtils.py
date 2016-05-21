@@ -64,24 +64,25 @@ class MethodUtils(object):
         flag = True
         for i in list_tweets:
             for x in trust_list:
-                if i.author_id == x[0]:
+                if i[0] == x[0]:
                     x[1] += 1
                     flag = False
             if flag:
-                trust_list.append([i.author_id, 1])
+                trust_list.append([i[0], 1])
             flag = True
         self.sort_list_by_second_parameter(trust_list, self.trust_sort)
         for i in list_tweets:
-            if i.retweeted:
+            if i[2]:
                 rt_vector.append(1)
             else:
                 rt_vector.append(-1)
-            if i.author_id in self.trust_sort:
-                tweet_vector.append([i.author_id, i.retweets])
+            if i[0] in self.trust_sort:
+                tweet_vector.append([i[0], i[1]])
             else:
-                tweet_vector.append([i.author_id, i.retweets])
+                tweet_vector.append([i[0], i[1]])
         tweet_vector = np.array(tweet_vector)
-        clf = svm.SVC(kernel='rbf', C=0.7)
+        rt_vector = np.array(rt_vector)
+        clf = svm.SVC(kernel='rbf')
         clf.fit(tweet_vector, rt_vector)
 
         return clf
@@ -89,19 +90,26 @@ class MethodUtils(object):
     def recommend_tweets(self, recommender, tweets_parameter, tweets):
 
         tweet_show = []
-        predicted_vector = recommender.predict(tweets_parameter)
-        for i in predicted_vector:
-            if i == 1:
-                tweet_show.append(tweets[predicted_vector.index(i)])
+        for i in tweets_parameter:
+            predicted_vector = recommender.predict(i.reshape(1,-1))
+            if predicted_vector == 1:
+                tweet_show.append(tweets[np.where(tweets_parameter == i)[0][0]])
 
         return tweet_show
 
     def tweet_formatter(self, tweets):
         roi_prepare = []
-        for tweet in tweets:
-            for i in tweet:
-                roi_prepare.append([i.author.id, i.retweet_count])
-        return roi_prepare
+        for i in tweets:
+            roi_prepare.append([i.author.id, i.retweet_count])
+        roi_prepare_aux = np.array(roi_prepare)
+        return roi_prepare_aux
+
+    def tweet_formatter_training(self, tweets):
+        roi_prepare = []
+        for i in tweets:
+            roi_prepare.append([i.author.id, i.retweet_count,i.retweeted])
+        roi_prepare_aux = np.array(roi_prepare)
+        return roi_prepare_aux
 
     def from_tweet_api_to_model(self, list_tweets):
         aux_list_tweets = []
