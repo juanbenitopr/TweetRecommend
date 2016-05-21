@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block section %}
+<div class="well" style="padding:20px">
+ <a class="btn btn-block btn-social btn-twitter" target="_blank" href="{{redirect_url}}" style="margin-bottom:5px">Log in with twitter
+       <span class="fa fa-twitter"></span></a>
+    <form method="post">
+            {% csrf_token %}
+        <input type="text" name="verifier">
+        <input type="submit">
+    </form>
+</div>
+{% endblock %}

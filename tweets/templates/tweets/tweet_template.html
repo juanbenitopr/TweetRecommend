@@ -1,57 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
-          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
-          integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-2.2.3.min.js"
-            integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
-            integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
-            crossorigin="anonymous"></script>
-
-</head>
-<body>
-<nav class="navbar navbar-default">
-    <div class="navbar-header">
-        <a href="#" class="navbar-brand">TweetEngine</a>
-    </div>
-    <ul class="nav navbar-nav">
-        <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
-        <li><a href="#">Link</a></li>
-        <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-               aria-expanded="false">Dropdown <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-                <li><a href="#">Training</a></li>
-                <li><a href="#">Check Roi</a></li>
-            </ul>
-        </li>
-    </ul>
-</nav>
-<div class="container-fluid">
-    {% for tweet in tweet_show %}
-
+{% extends 'base.html' %}
+{% block section%}
     <div class="row">
-        <div class="col-md-12">
-            <div class="well">
-                {{tweet.author.name}}
-                {{tweet.text}}
-                {% if tweet.retweet == True%}
-                <button>Retweeted</button>
-                {% else %}
-                <button>Retweet</button>
-                {% endif %}
+        {% for tweet in tweets %}
+        {% if forloop.counter0|divisibleby:3%}
+    </div>
+    <div class="row">
+        {% endif %}
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    {{tweet.author}}
+                </div>
+                <div class="panel-body">
+                    {{tweet.text}}
+                </div>
+                <div class="panel-footer">
+                    {% if tweet.retweeted == True%}
+                    <button>Retweeted</button>
+                    {% else %}
+                    <button>Retweet</button>
+                    {% endif %}
+                    <p>{{tweet.retweets}}</p>
             </div>
         </div>
     </div>
     {% endfor %}
-</div>
-</body>
-</html>
+{% endblock %}

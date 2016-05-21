@@ -1,0 +1,43 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TweetRecommend</title>
+<link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/jquery-ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery.tagit.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mystyles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-select.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-social.css' %}">
+    <link rel="stylesheet" href="{% static 'css/star-rating.css' %}" media="all">
+    <link rel="stylesheet" href="{% static 'css/theme-krajee-svg.css' %}" media="all">
+    <!-- jQuery library -->
+    <script src="{% static 'js/jquery.js'%}"></script>
+    <script src="{% static 'js/jquery-ui.js'%}" type="text/javascript" charset="utf-8"></script>
+    <script src="{% static 'js/jquery.jcarousel.js'%}" type="text/javascript"></script>
+    <script src="{% static 'js/bootstrap.js' %}"></script>
+    <script src ="{% static 'js/tag-it.js'%}"></script>
+    <script src ="{% static 'js/myfunctions.js'%}"></script>
+    <script src ="{% static 'js/bootstrap-select.js'%}"></script>
+    <script src ="{% static 'js/i18n/defaults-*.min.js'%}"></script>
+    <script src ="{% static 'js/star-rating.js'%}"></script>
+
+
+</head>
+<body>
+<nav class="navbar navbar-default">
+    <div class="navbar-header">
+        <a href="#" class="navbar-brand">TweetEngine</a>
+    </div>
+    <ul class="nav navbar-nav">
+        <li><a href="/">Ver tweets recomendados</a></li>
+        <li><a href="/new_tweets">Ver tweets nuevos</a></li>
+    </ul>
+</nav>
+<div class="container-fluid">
+    {% block section %}{% endblock %}
+</div>
+</body>
+</html>

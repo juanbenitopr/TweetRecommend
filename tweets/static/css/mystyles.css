@@ -1,0 +1,417 @@
+  body {
+      background-color: #E9E9E1
+  }
+  
+  section {
+      background-color: #E9E9E1;
+      border-radius: 5px;
+  }
+  
+  .img-custom {
+      margin-bottom: 10px;
+      object-fit: contain; 
+      object-position: center;
+      height: 300px;
+      width: 250px;
+  }
+.avatar{
+    object-fit: contain; 
+    object-position: center;
+    height: 50px;
+}
+  .well p {
+      margin-left: 4%
+  }
+  
+  img:hover~#b {
+      display: block;
+  }
+  
+  .well-custom {
+      background-color: white;
+      border: 1px solid #9F9C9C
+  }
+  
+  .well-custom img {
+      border-bottom: 1px solid #9F9C9C
+  }
+  
+  .well-profile {
+      padding: 10px;
+      padding-left: 20px
+  }
+  
+  .well-data {
+      padding-left:0
+   }
+.img-data{
+    border-radius: 3px;
+    border:0.2px solid black;
+    
+}
+  input {
+      border: 1px solid #9F9C9C;
+      border-radius: 5px;
+      padding: 5px
+  }
+  
+  input:focus {
+      border-color: black
+  }
+  
+  .comment {
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background-color: #C1BCBC;
+      border-bottom: solid black 1px
+  }
+  
+  .comment a {
+      display: inline;
+  }
+  
+  .comment p {
+      display: inline;
+  }
+  
+  .user-photo {
+      display: block;
+      background-color: #62C8D8;
+      border-radius: 3px;
+      padding: 3px
+  }
+  
+  .detail-photo {
+      max-width: 300px
+  }
+  
+  .detail-photo>img {
+      margin-bottom: 0
+  }
+  
+  .dropdown-img {
+      position: absolute;
+      right: 10%;
+      bottom: 17%;
+      display: none;
+  }
+  
+  .navbar-right {
+      padding-right: 30px;
+  }
+  
+  .select-custom {
+      background-image: linear-gradient(to bottom, #fff 0%, #f8f8f8 100%);
+      min-height: 100%;
+      border-radius: 0;
+  }
+  
+  .tagit-custom {
+      max-width: 300px;
+      border-radius: 10px;
+      min-height: 100px;
+      background-color: white
+  }
+  
+  .dropdown-menu>li>a {
+      display: block;
+      padding: 3px 20px;
+      clear: both;
+      font-weight: normal;
+      line-height: 1.4285713;
+      color: #333;
+      cursor: pointer;
+      white-space: nowrap;
+  }
+  
+  .dropdown-menu>li>p {
+      display: block;
+      padding: 3px 20px;
+      clear: both;
+      font-weight: normal;
+      line-height: 1.4285713;
+      color: #333;
+      cursor: pointer;
+      white-space: nowrap;
+  }
+  
+  .dropdown-menu>li>p:hover {
+      background-color: #e7e7e7
+  }
+  
+  .btn-circle {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      padding: 6px 0;
+      font-size: 12px;
+      line-height: 1.42;
+      border-radius: 20px;
+      position: fixed;
+      right: 3%;
+      bottom: 5%;
+  }
+  
+  #content~section {
+      padding: 0;
+      margin: 0;
+  }
+  
+  .panel-login {
+      position: absolute;
+      right: 10%;
+      top: 15%;
+      background-color: white;
+      padding: 15px;
+      border-radius: 5px
+  }
+  
+  .panel-login input {
+      margin: 6px
+  }
+  
+  #content {
+      max-width: 100%;
+      min-height: 100%;
+  }
+  
+  #content img {
+      max-width: 100%;
+  }
+  
+  .like {
+      background-color: dodgerblue;
+      color: white;
+      border-radius: 3px;
+      padding: 3px;
+      display: inline-block;
+      border: 1px solid black;
+  }
+  
+  .list-name {
+      float: left;
+  }
+  
+  .list-profile {
+      float: right;
+      padding-right: 30px;
+  }
+  
+  .panel-heading-custom {
+      height: 50px;
+      padding-right: 30px;
+      padding-bottom: 30px;
+  }
+  
+  .input-form p {
+      display: inline-block
+  }
+  
+  .input-form input {
+      display: inline-block;
+  }
+  
+  .modal-body-custom {
+      padding: 15px;
+  }
+  
+  .modal-body-custom input {
+      margin: 10px;
+  }
+  
+  .modal-body-custom .bootstrap-select {
+      margin-left: 10px!important;
+  }
+  
+  .btn-circle-top {
+      bottom: 12%
+  }
+  
+  .btn-circle-custom {
+      width: 40px;
+      height: 40px;
+      right: 3%;
+      bottom: 5%;
+      background-color: #26A69A;
+      border-color: #26A69A;
+      color: white
+  }
+  .btn-circle-custom-top {
+      width: 40px;
+      height: 40px;
+      right: 3%;
+      bottom: 12%;
+      background-color: #26A69A;
+      border-color: #26A69A;
+      color: white;
+  }
+  
+  .btn-circle-custom:hover {
+      width: 60px;
+      height: 60px;
+      right: 2%;
+      bottom: 3%;
+      border-radius: 30px;
+      background-color: #26A69A;
+      border-color: #26A69A;
+      color: white;
+      font-size: 1.2em;
+  }
+  
+  .btn-circle-custom:focus {
+      color: white;
+      background-color: #26A69A
+  }
+  
+  .btn-circle-custom-top:hover {
+      width: 60px;
+      height: 60px;
+      right: 2%;
+      bottom: 10%;
+      border-radius: 30px;
+      background-color: #26A69A;
+      border-color: #26A69A;
+      color: white;
+      font-size: 1.2em;
+  }
+  
+  .dropdown:hover .dropdown-menu {
+      display: block;
+      margin-top: 0;
+  }
+  
+  .navbar>.nav>.dropdown:hover {
+      background-color: #39b2a6
+  }
+  
+  .dropdown-menu>li>p {
+      margin-left: 0
+  }
+  
+  .navbar-default .tagit-custom {
+      min-height: 5px;
+      height: 40px;
+      border-radius: 4px 0 0 4px;
+      min-width: 700px;
+      overflow: auto
+  }
+  
+  .search-button {
+      cursor: pointer;
+  }
+  /*jCarousel*/
+  
+  .jcarousel {
+      position: relative;
+      overflow: hidden;
+  }
+  
+  .jcarousel ul {
+      width: 20000em;
+      position: relative;
+      /* Optional, required in this case since it's a <ul> element */
+      list-style: none;
+      margin: 0;
+      padding: 0;
+  }
+  /*
+These are the item elements. jCarousel works best, if the items
+have a fixed width and height (but it's not required).
+*/
+  
+  .jcarousel li {
+      /* Required only for block elements like <li>'s */
+      float: left;
+  }
+  
+  .jcarousel-control-prev,
+  .jcarousel-control-next {
+      position: absolute;
+      width: 30px;
+      top: 40%;
+      min-height: 30px;
+      text-align: center;
+      background: #4E443C;
+      color: #fff;
+      text-decoration: none;
+      text-shadow: 0 0 1px #000;
+      font: 24px/27px Arial, sans-serif;
+      -webkit-border-radius: 30px;
+      -moz-border-radius: 30px;
+      border-radius: 30px;
+      -webkit-box-shadow: 0 0 2px #999;
+      -moz-box-shadow: 0 0 2px #999;
+      box-shadow: 0 0 2px #999;
+  }
+  
+  .jcarousel-control-prev {
+      left: 10px;
+  }
+  
+  .jcarousel-control-next {
+      right: 10px;
+  }
+  
+  .jcarousel-control-prev:hover span,
+  .jcarousel-control-next:hover span {
+      display: block;
+  }
+  
+  .jcarousel-control-prev.inactive,
+  .jcarousel-control-next.inactive {
+      opacity: .5;
+      cursor: default;
+  }
+  /*jCarousel*/
+  
+  .navbar-default a {
+      color: white !important
+  }
+  
+  .dropdown-menu a {
+      color: black !important
+  }
+  
+  .navbar-default {
+      background-color: #26A69A;
+      border-color: #26A69A
+  }
+  
+  .top-img {
+      position: absolute;
+      top: 3%;
+      right: 10%;
+      display: none
+  }
+  
+  .login-logo {
+      position: absolute;
+      top:58%;
+      right: 43%;
+      width: 200px;
+  }
+  
+  .btn-custom-image {
+      color: white;
+      background-color: #26A69A;
+      border-color: #26A69A
+  }
+  
+  .btn-custom-image:hover {
+      background-color: #39b2a6;
+      border-color: #39b2a6;
+      color: white;
+  }
+  
+  .input-group-custom {
+      margin-top: 5px;
+  }
+  
+  .navbar .form-control-custom {
+      display: none;
+  }
+  
+  .input-group-custom:hover {
+      background-color: #26A69A!important;
+  }
