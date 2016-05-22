@@ -37,9 +37,9 @@ class MainTweet(MethodUtils,View):
         access_token = request.session.get('access_token')
         self.auth.set_access_token(access_token[0],access_token[1])
         self.api = tw.API(self.auth)
-        new_tweets = self.api.home_timeline(count = 50)
-        tweets = self.api.home_timeline(count=100,page=1)
-        # tweets = TweetModel.objects.all()
+        new_tweets = self.api.home_timeline(count = 100)
+        # tweets = self.api.home_timeline(count=100,page=1)
+        tweets = TweetModel.objects.all()
         if len(tweets) == 0:
             aux_tweet = self.get_tweets(new_tweets)
             tweets = aux_tweet

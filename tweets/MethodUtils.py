@@ -53,7 +53,7 @@ class MethodUtils(object):
                 training_vector.append(self.api.home_timeline(page=i + 1, count=100))
             else:
                 training_vector.append(self.api.home_timeline(max_id=new_tweets.since_id, count=100))
-        self.from_tweet_api_to_model(training_vector)
+        training_vector = self.from_tweet_api_to_model(training_vector)
         return training_vector
 
     def training(self, list_tweets):
@@ -82,7 +82,7 @@ class MethodUtils(object):
                 tweet_vector.append([i[0], i[1]])
         tweet_vector = np.array(tweet_vector)
         rt_vector = np.array(rt_vector)
-        clf = svm.SVC(kernel='rbf')
+        clf = svm.SVC(kernel='rbf',C=1, gamma = 0.1,tol=0.01)
         clf.fit(tweet_vector, rt_vector)
 
         return clf
@@ -107,7 +107,7 @@ class MethodUtils(object):
     def tweet_formatter_training(self, tweets):
         roi_prepare = []
         for i in tweets:
-            roi_prepare.append([i.author.id, i.retweet_count,i.retweeted])
+            roi_prepare.append([i.author_id, i.retweets,i.retweeted])
         roi_prepare_aux = np.array(roi_prepare)
         return roi_prepare_aux
 
