@@ -2,27 +2,36 @@
 {% block section%}
     <div class="row">
         {% for tweet in tweets %}
-        {% if forloop.counter0|divisibleby:3%}
+        {% if forloop.counter0|divisibleby:2%}
     </div>
     <div class="row">
         {% endif %}
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    {{tweet.author}}
+                    <h4>{{tweet.autor_name}}</h4>
                 </div>
-                <div class="panel-body">
-                    {{tweet.text}}
+                <div class="panel-body" style="height:480px">
+                    <p>{{tweet.text}}</p>
+                    {% if tweet.media %}
+                        {% if tweet.type_media == 'photo' %}
+                            <img src="{{tweet.url_media}}" alt="{{tweet.url_media}}" class="img-custom">
+                        {% endif %}
+                    {% endif %}
                 </div>
                 <div class="panel-footer">
+                    {% for categoria in categorias %}
+                    <button class="btn btn-primary">{{categoria.name}}</button>
+                    {% endfor %}
                     {% if tweet.retweeted == True%}
-                    <button>Retweeted</button>
+                    <button class="btn btn-warning">Retweeted</button>
                     {% else %}
-                    <button>Retweet</button>
+                    <button class="btn btn-warning">Retweet</button>
                     {% endif %}
                     <p>{{tweet.retweets}}</p>
             </div>
         </div>
     </div>
     {% endfor %}
+        <button class="btn btn-circle btn-circle-custom" style="font-weight:bold">Save</button>
 {% endblock %}

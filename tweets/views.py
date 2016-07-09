@@ -4,7 +4,9 @@ from django.views.generic import View
 import tweepy as tw
 import numpy as np
 from MethodUtils import MethodUtils
-from tweets.models import TweetModel
+from tweets.MethodUtils import from_tweet_template_to_model
+from tweets.models import TweetModel, Categorias
+
 
 class LoginView(MethodUtils,View):
     def get(self,request):
@@ -39,11 +41,11 @@ class MainTweet(MethodUtils,View):
         self.api = tw.API(self.auth)
         new_tweets = self.api.home_timeline(count = 100)
         # tweets = self.api.home_timeline(count=100,page=1)
-        tweets = TweetModel.objects.all()
-        if len(tweets) == 0:
-            aux_tweet = self.get_tweets(new_tweets)
-            tweets = aux_tweet
-        tweets = self.tweet_formatter_training(tweets)
+        # tweets = TweetModel.objects.all()
+        # if len(tweets) == 0:
+        #     aux_tweet = self.get_tweets(new_tweets)
+        #     tweets = aux_tweet
+        tweets = self.tweet_formatter_training(new_tweets)
         recommender = self.training(tweets)
         tweets_format = self.tweet_formatter(new_tweets)
         tweets_recommends = self.recommend_tweets(recommender=recommender,tweets_parameter=tweets_format,tweets=new_tweets)
@@ -54,18 +56,22 @@ class MainTweet(MethodUtils,View):
         }
         return render(request=request,template_name='tweets/tweet_template.html',context=context)
 
-class NewTweets(MethodUtils,View):
+class TrainningTweets(MethodUtils,View):
     def get(self,request):
         token = request.session.get('access_token')
         if not token:
             return redirect('login')
         self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
-        access_token = request.session.get('access_token')
-        self.auth.set_access_token(access_token[0], access_token[1])
+        self.auth.set_access_token(token[0], token[1])
         self.api = tw.API(self.auth)
         new_tweets = self.api.home_timeline(count=100)
-        tweets_format = self.from_tweet_template_to_model(new_tweets)
+        tweets_format = from_tweet_template_to_model(new_tweets)
+        categorias = Categorias.objects.all()
         context = {
-            'tweets': tweets_format
+            'tweets': tweets_format,
+            'categorias':categorias
         }
         return render(request=request, template_name='tweets/tweet_template.html', context=context)
+
+    def post(self,request):
+        pass
