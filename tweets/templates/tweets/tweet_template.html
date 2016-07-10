@@ -19,19 +19,19 @@
                         {% endif %}
                     {% endif %}
                 </div>
-                <div class="panel-footer">
+                <div id="{{tweet.tweet_id}}" class="panel-footer">
                     {% for categoria in categorias %}
-                    <button class="btn btn-primary">{{categoria.name}}</button>
+                    <button id="{{categoria.pk}}" class="btn btn-primary btn-select-category">{{categoria.name}}</button>
                     {% endfor %}
-                    {% if tweet.retweeted == True%}
-                    <button class="btn btn-warning">Retweeted</button>
+                    {% if tweet.retweeted == True %}
+                    <button class="btn btn-warning btn-retweeted">Retweeted</button>
                     {% else %}
-                    <button class="btn btn-warning">Retweet</button>
+                    <button class="btn btn-warning btn-retweet">Retweet</button>
                     {% endif %}
                     <p>{{tweet.retweets}}</p>
             </div>
         </div>
     </div>
     {% endfor %}
-        <button class="btn btn-circle btn-circle-custom" style="font-weight:bold">Save</button>
+        <button id="save" class="btn btn-circle btn-circle-custom" style="font-weight:bold">Save</button>
 {% endblock %}

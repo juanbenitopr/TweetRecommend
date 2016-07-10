@@ -1,3 +1,47 @@
+$(function () {
+    var array_tweets = []
+
+    $('.btn-select-category').click(function () {
+        var ob = $(this)
+        var category_id = ob.attr('id')
+        var tweet_id = ob.closest('.panel-footer').attr('id')
+        var obj_aux = {
+            tweet_id: tweet_id,
+            category_id: category_id
+        }
+        array_tweets.push(obj_aux)
+        ob.removeClass('btn-select-category')
+        ob.addClass('btn-selected-category')
+    })
+
+
+    $('.btn-retweet').click(function () {
+        $(this).text('Retweeted')
+        $(this).removeClass('btn-retweet')
+        $(this).addClass('btn-retweeted')
+        var tweet_id = $(this).closest('.panel-footer').attr('id')
+        var obj_aux = {
+            tweet_id: tweet_id,
+            retweeted: true
+        }
+        array_tweets.push(obj_aux)
+    })
+    $('.btn-retweeted').click(function () {
+        $(this).text('Retweet')
+        $(this).removeClass('btn-retweeted')
+        $(this).addClass('btn-retweet')
+        var obj_aux = {
+            tweet_id: tweet_id,
+            retweeted: false
+        }
+        array_tweets.push(obj_aux)
+    })
+
+    $('.btn-circle-custom').click(function () {
+        send_data_url({data_send:JSON.stringify(array_tweets)},'http://localhost:4000')
+    })
+})
+
 
 function send_data_url(data_send, url) {
     var csrftoken = getCookie('csrftoken')

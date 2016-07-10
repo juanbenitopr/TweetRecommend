@@ -227,7 +227,24 @@
   .btn-circle-top {
       bottom: 12%
   }
-  
+  .btn-select-category{
+
+  }
+  .btn-selected-category{
+      background-color: #26A69A;
+      border-color: #26A69A;
+      color: white
+  }
+  .btn-selected-category:focus{
+      background-color: #26A69A;
+      border-color: #26A69A;
+      color: white
+  }
+    .btn-selected-category:hover{
+      background-color: #26A69A;
+      border-color: #26A69A;
+      color: white
+  }
   .btn-circle-custom {
       width: 40px;
       height: 40px;

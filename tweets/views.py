@@ -1,3 +1,5 @@
+from pandas import json
+
 from django.http.response import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -64,7 +66,7 @@ class TrainningTweets(MethodUtils,View):
         self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
         self.auth.set_access_token(token[0], token[1])
         self.api = tw.API(self.auth)
-        new_tweets = self.api.home_timeline(count=100)
+        new_tweets = self.api.home_timeline(count=20)
         tweets_format = from_tweet_template_to_model(new_tweets)
         categorias = Categorias.objects.all()
         context = {
@@ -74,4 +76,6 @@ class TrainningTweets(MethodUtils,View):
         return render(request=request, template_name='tweets/tweet_template.html', context=context)
 
     def post(self,request):
+        data_send = str(request.POST.get('data_send'))
+        json_data = json.loads(data_send)
         pass
