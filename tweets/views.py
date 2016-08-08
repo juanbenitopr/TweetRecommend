@@ -42,21 +42,15 @@ class MainTweet(MethodUtils,View):
         self.auth.set_access_token(access_token[0],access_token[1])
         self.api = tw.API(self.auth)
         new_tweets = self.api.home_timeline(count = 100)
-        # tweets = self.api.home_timeline(count=100,page=1)
-        # tweets = TweetModel.objects.all()
-        # if len(tweets) == 0:
-        #     aux_tweet = self.get_tweets(new_tweets)
-        #     tweets = aux_tweet
-        tweets = self.tweet_formatter_training(new_tweets)
-        recommender = self.training(tweets)
         tweets_format = self.tweet_formatter(new_tweets)
+        recommender = self.training_tweets_categories()
+        # tweets = self.tweet_formatter_training(new_tweets)
+        # recommender = self.training(tweets)
         tweets_recommends = self.recommend_tweets(recommender=recommender,tweets_parameter=tweets_format,tweets=new_tweets)
-        tweets_format = self.from_tweet_template_to_model(tweets_recommends)
-
         context = {
-            'tweets':tweets_format
+            'tweets':tweets_recommends
         }
-        return render(request=request,template_name='tweets/tweet_template.html',context=context)
+        return render(request=request,template_name='tweets/tweet_classifier.html',context=context)
 
 class TrainningTweets(MethodUtils,View):
     def get(self,request):
@@ -78,4 +72,13 @@ class TrainningTweets(MethodUtils,View):
     def post(self,request):
         data_send = str(request.POST.get('data_send'))
         json_data = json.loads(data_send)
-        pass
+        for data in json_data:
+            tweet = TweetModel.objects.get(tweet_id=data.get('tweet_id'))
+            if 'retweeted' in data:
+                tweet.retweeted = data.get('retweeted')
+                tweet.save()
+            elif 'category_id' in data :
+                tweet.categoria.add(Categorias.objects.get(pk = data.get('category_id')))
+                tweet.save()
+        return HttpResponse('Conseguido')
+

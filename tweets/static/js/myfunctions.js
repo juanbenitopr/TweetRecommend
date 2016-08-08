@@ -38,7 +38,7 @@ $(function () {
     })
 
     $('.btn-circle-custom').click(function () {
-        send_data_url({data_send:JSON.stringify(array_tweets)},'http://localhost:4000')
+        send_data_url({data_send:JSON.stringify(array_tweets)},'http://localhost:4000/new_tweets')
     })
 })
 

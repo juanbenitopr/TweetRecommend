@@ -7,7 +7,7 @@ from tweets.models import TweetModel, Categorias, Autores, Person_interest
 
 
 class TweetAdmin(ModelAdmin):
-    list_display = ('author','retweeted','retweets')
+    list_display = ('autor','retweeted','retweets')
 admin.site.register(TweetModel,TweetAdmin)
 admin.site.register(Categorias)
 admin.site.register(Autores)

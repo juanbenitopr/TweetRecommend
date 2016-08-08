@@ -20,7 +20,7 @@ from tweets.views import MainTweet, TrainningTweets, LoginView
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^training_tweets$', MainTweet.as_view(), name='main_tweets'),
-    url(r'^$', TrainningTweets.as_view(), name='new_tweets'),
+    url(r'^new_tweets$', TrainningTweets.as_view(), name='new_tweets'),
+    url(r'^$', MainTweet.as_view(), name=''),
     url(r'^login$', LoginView.as_view(), name='login')
 ]

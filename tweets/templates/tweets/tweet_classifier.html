@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block section%}
+    <div class="row">
+        {% for tweet in tweets %}
+        {% if forloop.counter0|divisibleby:2%}
+    </div>
+    <div class="row">
+        {% endif %}
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4>{{tweet.tweet.autor_name}}</h4>
+                </div>
+                <div class="panel-body" style="height:480px">
+                    <p>{{tweet.tweet.text}}</p>
+                    {% if tweet.tweet.media %}
+                        {% if tweet.tweet.type_media == 'photo' %}
+                            <img src="{{tweet.tweet.url_media}}" alt="{{tweet.tweet.url_media}}" class="img-custom">
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div id="{{tweet.tweet.tweet_id}}" class="panel-footer">
+                    {% for categoria in tweet.categorias %}
+                    <button class="btn btn-primary">{{categoria}}</button>
+                    {% endfor %}
+                    {% if tweet.tweet.retweeted == True %}
+                    <button class="btn btn-warning ">Retweeted</button>
+                    {% else %}
+                    <button class="btn btn-warning">Retweet</button>
+                    {% endif %}
+                    <p>{{tweet.tweet.n_rt}}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endblock %}
