@@ -15,7 +15,7 @@ class Person_interest(Model):
         return self.name
 
 class Autores(Model):
-    id_autor = IntegerField(unique=True)
+    id_autor    = IntegerField(unique=True)
     name = CharField(max_length=150)
     lang = CharField(max_length=10,default='es')
     friends_count = IntegerField()

@@ -5,7 +5,9 @@ import numpy as np
 import tweepy as tw
 from django.shortcuts import redirect
 from sklearn import svm
+from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.pipeline import Pipeline
 from sklearn.svm.classes import SVC
 
 from tweets.models import TweetModel, Autores, Categorias
@@ -53,7 +55,6 @@ class TweetObject(object):
 
 def built_from_tweepy(tweet):
     author = tweet.author
-
     autor_aux = Autores.objects.filter(id_autor=author.id)
     autor = autor_aux[0] if len(autor_aux) == 1 else Autores.objects.create(id_autor=author.id, name=author.name,
                                                                             lang=author.lang,
@@ -97,9 +98,9 @@ def build_from_tweepy_without_save(tweet):
 def from_tweet_template_to_model(list_tweets):
     aux_list_tweets = []
     for tweet in list_tweets:
-        t_model = TweetModel.objects.filter(tweet_id=tweet.id)
-        len_tweet = len(t_model)
-        if len_tweet == 0:
+        if tweet.author.lang == 'en': continue
+        t_model = TweetModel.objects.filter(tweet_id=tweet.id).count()
+        if t_model == 0:
             tweepy = built_from_tweepy(tweet)
             aux_list_tweets.append(tweepy)
         else:
@@ -186,9 +187,16 @@ class MethodUtils(object):
             tweet_features[count, :] = features
             tweet_label[count, :] = label
             count+=1
-        clasif = OneVsRestClassifier(SVC(kernel='linear',C=1)).fit(tweet_features, tweet_label)
-        return clasif
+        clasif = OneVsRestClassifier(SVC(kernel='linear',C=100))
+        scores = cross_val_score(clasif,tweet_features,tweet_label,cv=5)
+        accuracy = {'mean':scores.mean(),'std':scores.std()*2}
+        clasif.fit(tweet_features, tweet_label)
+        return clasif,accuracy
 
+    def training_tweets_categories_text_minig(self):
+        pipeline = Pipeline([
+
+        ])
 
 # Este metodo se puede refactorizar para que sea mas limpio, en lugar de concatenando al final creandolo de primeras con todas las posiciones en 0 e ir
 # anadiendo lo necesario
@@ -230,6 +238,8 @@ class MethodUtils(object):
             count +=1
         return tweet_features
 
+    def text_mining(self,text):
+        pass
     # def get_roi(self):
 
     # count = 0

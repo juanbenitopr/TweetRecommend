@@ -16,11 +16,12 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-from tweets.views import MainTweet, TrainningTweets, LoginView
+from tweets.views import MainTweet, TrainningTweets, LoginView,TextMining
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^new_tweets$', TrainningTweets.as_view(), name='new_tweets'),
     url(r'^$', MainTweet.as_view(), name=''),
-    url(r'^login$', LoginView.as_view(), name='login')
+    url(r'^login$', LoginView.as_view(), name='login'),
+    url(r'^text_mining$',TextMining.as_view(),name='text_mining')
 ]
