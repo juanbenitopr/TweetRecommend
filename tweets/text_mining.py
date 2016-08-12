@@ -10,7 +10,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.svm.classes import SVC, LinearSVC
 
-
+# Este módulo simplemente tienes los métodos para usar las técnicas de text mining..., el tokenize, las stop_words etc...
 def get_stop_words():
     return stopwords.words('spanish')
 

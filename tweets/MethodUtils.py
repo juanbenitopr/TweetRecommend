@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 from datetime import datetime
 import time
 
@@ -13,6 +14,9 @@ from sklearn.svm.classes import SVC
 from tweets import text_mining
 from tweets.models import TweetModel, Autores, Categorias
 
+#Este módulo tiene todos los métodos para sacar las features de los tweets, y clasificarlas
+#La clase Tweet Object es una clase que agrupa todos los atributos que quiero mostrar en las vistas, en un solo objeto para que sea más fácil trabajar con él.
+#además he hecho algunos métodos para guardar directamente este objeto en la base de datos
 
 class TweetObject(object):
     autor_created_at = datetime.now()
@@ -31,7 +35,7 @@ class TweetObject(object):
     tweet_id = 0
     n_rt = 0
     n_fav = 0
-
+    #soy bastante nuevo utilizando objetos en python, mi experiencia anterior es con java así que no te asustes de este constructor
     def __init__(self, autor_name, autor_lang, autor_id, autor_created_at, autor_favourites_count,
                  autor_followers_count, autor_friends_count, text, created_at, media, type_media, url_media, url, id,
                  n_rt, n_fav):
@@ -53,7 +57,7 @@ class TweetObject(object):
         self.n_rt = n_rt
         self.n_fav = n_fav
 
-
+# este método es para pasar de un objeto status que te da tweepy a un TweetObject despues de haberlo guardado en la base de datos
 def built_from_tweepy(tweet):
     author = tweet.author
     autor_aux = Autores.objects.filter(id_autor=author.id)
@@ -81,6 +85,7 @@ def built_from_tweepy(tweet):
                                    '', '', '', tweet.id, tweet.retweet_count, tweet.favorite_count)
     return tweet_object
 
+#este método simplemente implementa un objeto TweetObject sin guardarlo previamente
 def build_from_tweepy_without_save(tweet):
     author = tweet.author
     if 'media' in tweet.entities:
@@ -95,11 +100,11 @@ def build_from_tweepy_without_save(tweet):
                                    author.followers_count, author.friends_count, tweet.text, tweet.created_at, False,
                                    '', '', '', tweet.id, tweet.retweet_count, tweet.favorite_count)
     return tweet_object
-
+#Comprueba que el tweet recuperado no existe previamente y que el tweet está en español
 def from_tweet_template_to_model(list_tweets):
     aux_list_tweets = []
     for tweet in list_tweets:
-        if tweet.author.lang == 'en': continue
+        if tweet.lang == 'en': continue
         t_model = TweetModel.objects.filter(tweet_id=tweet.id).count()
         if t_model == 0:
             tweepy = built_from_tweepy(tweet)
@@ -108,9 +113,10 @@ def from_tweet_template_to_model(list_tweets):
             continue
     return aux_list_tweets
 
-
+#Este objeto lo he implementado porque en principio proporciona todas las técnicas de autenticación,
 class MethodUtils(object):
 
+#Métodos de autenticación para tweepy
     def authentication(self, request):
 
         self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
@@ -121,8 +127,6 @@ class MethodUtils(object):
 
         except tw.TweepError:
             print 'Error!'
-            # auth.set_access_token('299655885-Bd42kEf0GEVFbqauX2fz1YOM7iY2WYYMXyfe2wgl',
-            #                       'SKVFFbtGoLnYelTtedl5khWWPEsGQnDr081gQr0ZPF7yj')
 
     def verify(self, verify, request):
         self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
@@ -133,36 +137,42 @@ class MethodUtils(object):
         except tw.TweepError:
             print 'Error! Failed to get access token.'
 
-    def get_tweets(self, new_tweets):
-        training_vector = []
-        for i in range(3):
-            if i > 0:
-                training_vector.append(self.api.home_timeline(page=i + 1, count=100))
-            else:
-                training_vector.append(self.api.home_timeline(max_id=new_tweets.since_id, count=100))
-        training_vector = self.from_tweet_api_to_model(training_vector)
-        return training_vector
+
+    #Fin de los métodos de autenticación
+    #
+    #Los siguientes métodos empece a incluirnos en el mismo objeto, aunque su misión no son la misma que los métodos anteriores
+    #Más adelante irán a otro objeto con la función más definida, este objeto en principio tiene todos los métodos de utilidad variada
+
+    #Estos métodos son para el entrenamiento descrito en el correo sin el uso e text-mining
+    #Este método es para extraer las features de los nuevos tweets
+    def tweet_formatter(self, tweets):
+        for t in tweets:
+            if Autores.objects.filter(id_autor = t.author.id).count()==0:
+                Autores.objects.create(id_autor = t.author.id,name=t.author.name,lang = t.author.lang,friends_count = t.author.friends_count,followers_count = t.author.friends_count,favorites_count = t.author.favourites_count)
+        self.autores = [a.id_autor for a in Autores.objects.all().order_by('pk')]
+        tweet_features = np.zeros((len(tweets), len(self.autores) + 3 + 1))
+        count = 0
+        for t in tweets:
+            features = self.new_tweet_model_to_classifier(t)
+            tweet_features[count, :] = features
+            count +=1
+        return tweet_features
 
 
-    def tweet_formatter_training(self, tweets):
-        roi_prepare = []
-        for i in tweets:
-            roi_prepare.append([i.author_id, i.retweets, i.retweeted])
-        roi_prepare_aux = np.array(roi_prepare)
-        return roi_prepare_aux
-
-    def from_tweet_api_to_model(self, list_tweets):
-        aux_list_tweets = []
-        for tweets in list_tweets:
-            for tweet in tweets:
-                tweet_model = TweetModel.objects.create(text=tweet.text, author_id=tweet.author.id,
-                                                        author=tweet.author.name, tweet_id=tweet.id,
-                                                        retweeted=tweet.retweeted, retweets=tweet.retweet_count,
-                                                        favorite=tweet.favorited, favorites=tweet.favorite_count)
-                aux_list_tweets.append(tweet_model)
-        return aux_list_tweets
+    def new_tweet_model_to_classifier(self, tweet_model):
+        autores = np.zeros(len(self.autores))
+        autores[self.autores.index(tweet_model.author.id)] = 1
+        rt_vector = np.zeros(3)
+        retweets = tweet_model.retweet_count
+        rt_vector[
+            0 if retweets < 20 else 1 if retweets < 50 else 2] = 1
+        media = np.array([1 if 'media' in tweet_model.entities else 0])
+        # date = np.array([time.mktime(tweet_model.created_at.timetuple())])
+        features_vector = np.concatenate((autores, rt_vector, media), axis=0)
+        return features_vector
 
 
+    # Estos métodos son para extraer las features de los tweets de entrenamiento, y entrenar el clasificador
     def training_tweets_categories(self):
         self.autores = [a.id_autor for a in Autores.objects.all().order_by('pk')]
         tweets = TweetModel.objects.exclude(categoria = None)
@@ -181,7 +191,22 @@ class MethodUtils(object):
         clasif.fit(tweet_features, tweet_label)
         return clasif,accuracy
 
+    # Este método concretamente es el que extrae las features de lo tweets ya guardados
+    def tweet_model_to_predict_vector(self, tweet_model):
+        autores = np.zeros(len(self.autores))
+        autores[self.autores.index(tweet_model.autor.id_autor)] = 1
+        rt_vector = np.zeros(3)
+        rt_vector[
+            0 if tweet_model.retweets < 20 else 1 if tweet_model.retweets < 50 else 2] = 1
+        media = np.array([1 if tweet_model.media else 0])
+        features_vector = np.concatenate((autores, rt_vector, media), axis=0)
+        label = np.array(
+            [1 if categ in tweet_model.categoria.all() else 0 for categ in Categorias.objects.all().order_by('pk')])
+        return features_vector, label
 
+
+    #Método para recomendar los nuevos tweets en función de sus features, este método se sirve del numpy.where para saber que tweets pertecenen a que categoría
+    # de manera que las categorías puestas a 1 son las que se le asignan al tweet del índice al que pertenece
     def recommend_tweets(self, recommender, tweets_parameter, tweets):
         predicted_vector = recommender.predict(tweets_parameter)
         categorias  = Categorias.objects.all().order_by('pk')
@@ -194,18 +219,28 @@ class MethodUtils(object):
             aux.append(categorias_)
         return tweets_classified
 
+    #Fin de la clasificación sin text-mining
+    #
+    #Empieza la clasificación con text-mining, estos métodos esencialmente hacen lo mismo que los anteriores, con la única diferencia
+    #que estos utilizan lo que tu habías puesto en el post, lo del pipeline, tu clasificador y tal, hice pruebas con el mío pero los resulados eran muy parecidos
+    #estos métodos simplemente extraen el texto de los tweets y se lo meten al pipeline para que lo entrene
+
+
+    def tweet_formatter_text_mining(self, new_tweets):
+        return np.array([t.text for t in new_tweets])
+
     def training_tweets_categories_text_mining(self):
         pipeline = text_mining.get_pipeline()
         tweets = TweetModel.objects.filter(autor__lang='es').exclude(categoria=None).order_by('pk')
-        label = np.array([ [1 if categ in t.categoria.all() else 0 for categ in Categorias.objects.all().order_by('pk')] for t in tweets.select_related('autor') ])
+        label = np.array(
+            [[1 if categ in t.categoria.all() else 0 for categ in Categorias.objects.all().order_by('pk')] for t in
+             tweets.select_related('autor')])
         tweet_features = tweets.values_list('text', flat=True)
         scores = cross_val_score(pipeline, tweet_features, label, cv=5)
         pipeline.fit(tweet_features, label)
         accuracy = {'mean': scores.mean(), 'std': scores.std() * 2}
-        return pipeline,accuracy
+        return pipeline, accuracy
 
-    def tweet_formatter_text_mining(self,new_tweets):
-        return np.array([t.text for t in new_tweets])
 
     def recommend_tweets_text_mining(self,recommender, tweets_parameter, tweets):
         predicted_vector = recommender.predict(tweets_parameter)
@@ -218,81 +253,8 @@ class MethodUtils(object):
             categorias_ = categorias[int(label_)]
             aux.append(categorias_)
         return tweets_classified
-# Este metodo se puede refactorizar para que sea mas limpio, en lugar de concatenando al final creandolo de primeras con todas las posiciones en 0 e ir
-# anadiendo lo necesario
-    def tweet_model_to_predict_vector(self, tweet_model):
-        autores = np.zeros(len(self.autores))
-        autores[self.autores.index(tweet_model.autor.id_autor)] = 1
-        rt_vector = np.zeros(3)
-        rt_vector[
-            0 if tweet_model.retweets < 20 else 1 if tweet_model.retweets < 50 else 2] = 1
-        media = np.array([1 if tweet_model.media else 0])
-        features_vector = np.concatenate((autores, rt_vector, media), axis=0)
-        label = np.array([ 1 if categ in tweet_model.categoria.all() else 0for categ in Categorias.objects.all().order_by('pk')])
-        return features_vector, label
-
-    def tweet_model_to_predict_vector_text_mining(self,tweet_model):
-        autores = np.zeros(len(self.autores))
-        autores[self.autores.index(tweet_model.autor.id_autor)] = 1
-        rt_vector = np.zeros(3)
-        rt_vector[
-            0 if tweet_model.retweets < 20 else 1 if tweet_model.retweets < 50 else 2] = 1
-        media = np.array([1 if tweet_model.media else 0])
-        features_vector = np.concatenate((autores, rt_vector, media), axis=0)
-        label = np.array([ 1 if categ in tweet_model.categoria.all() else 0for categ in Categorias.objects.all().order_by('pk')])
-        return features_vector, label
-
-    def new_tweet_model_to_classifier(self, tweet_model):
-        autores = np.zeros(len(self.autores))
-        autores[self.autores.index(tweet_model.author.id)] = 1
-        rt_vector = np.zeros(3)
-        retweets = tweet_model.retweet_count
-        rt_vector[
-            0 if retweets < 20 else 1 if retweets < 50 else 2] = 1
-        media = np.array([1 if 'media' in tweet_model.entities else 0])
-        # date = np.array([time.mktime(tweet_model.created_at.timetuple())])
-        features_vector = np.concatenate((autores, rt_vector, media), axis=0)
-        return features_vector
-
-
-    def tweet_formatter(self, tweets):
-        for t in tweets:
-            if Autores.objects.filter(id_autor = t.author.id).count()==0:
-                Autores.objects.create(id_autor = t.author.id,name=t.author.name,lang = t.author.lang,friends_count = t.author.friends_count,followers_count = t.author.friends_count,favorites_count = t.author.favourites_count)
-        self.autores = [a.id_autor for a in Autores.objects.all().order_by('pk')]
-        tweet_features = np.zeros((len(tweets), len(self.autores) + 3 + 1))
-        count = 0
-        for t in tweets:
-            features = self.new_tweet_model_to_classifier(t)
-            tweet_features[count, :] = features
-            count +=1
-        return tweet_features
-
-    def text_mining(self,text):
-        pass
-    # def get_roi(self):
-
-    # count = 0
-    # rt_count = 0
-    # tweet_show = []
-    # predicted_vector = clf.predict(roi_prepare)
-    # for i in predicted_vector:
-    #     if i==1:
-    #         tweet_show.append(roi_vector[predicted_vector.index(i)])
-    #     ind = np.where(predicted_vector == i)
-    #     tweet =  roi_vector[ind]
-    #     if i == 1 and tweet.retweeted == 1:
-    #         count += 1
-    #     if i.retweeted == 1:
-    #         rt_count += 1
-    # roi = count * 100 / rt_count
 
 
 
-    #     ind = np.where(predicted_vector == i)
-    #     tweet =  tweets[ind]
-    #     if i == 1 and tweet.retweeted == 1:
-    #         count += 1
-    #     if i.retweeted == 1:
-    #         rt_count += 1
-    # roi = count * 100 / rt_count
+
+

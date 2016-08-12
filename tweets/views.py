@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 from pandas import json
 
 from django.http.response import HttpResponse
@@ -9,7 +10,7 @@ from MethodUtils import MethodUtils
 from tweets.MethodUtils import from_tweet_template_to_model
 from tweets.models import TweetModel, Categorias
 
-
+#Vista de login para twitter esta vista la he implementado porque tenía como objetivo que fuese multiusuario aunque lo fui desechando poco a poco
 class LoginView(MethodUtils,View):
     def get(self,request):
         try:
@@ -31,7 +32,9 @@ class LoginView(MethodUtils,View):
             request.session['access_token'] = access_token
             return redirect('/')
 
-
+#Vista para taggear tweets en las diferentes categorías
+#El get muestra los tweets con las categorías
+#El post guarda los tweets taggeados
 class TrainningTweets(MethodUtils,View):
     def get(self,request):
         token = request.session.get('access_token')
@@ -62,6 +65,7 @@ class TrainningTweets(MethodUtils,View):
                 tweet.save()
         return HttpResponse('Conseguido')
 
+#Muestra los tweets clasificados en cada categoría con la precisión que nos da este clasificador
 class MainTweet(MethodUtils,View):
     def get(self,request):
         token = request.session.get('access_token')
@@ -74,8 +78,6 @@ class MainTweet(MethodUtils,View):
         new_tweets = self.api.home_timeline(count = 100)
         tweets_format = self.tweet_formatter(new_tweets)
         recommender,accuracy = self.training_tweets_categories()
-        # tweets = self.tweet_formatter_training(new_tweets)
-        # recommender = self.training(tweets)
         tweets_recommends = self.recommend_tweets(recommender=recommender,tweets_parameter=tweets_format,tweets=new_tweets)
         context = {
             'tweets':tweets_recommends,
@@ -83,6 +85,7 @@ class MainTweet(MethodUtils,View):
         }
         return render(request=request,template_name='tweets/tweet_classifier.html',context=context)
 
+#Muestra lo mismo que la anterior pero utilizando técnicas de text-mining, en estructura es básicamente igual que la anterior
 class TextMining(MethodUtils,View):
     def get(self, request):
         token = request.session.get('access_token')
@@ -95,8 +98,6 @@ class TextMining(MethodUtils,View):
         new_tweets = self.api.home_timeline(count=100)
         tweets_format = self.tweet_formatter_text_mining(new_tweets)
         recommender, accuracy = self.training_tweets_categories_text_mining()
-        # tweets = self.tweet_formatter_training(new_tweets)
-        # recommender = self.training(tweets)
         tweets_recommends = self.recommend_tweets_text_mining(recommender=recommender, tweets_parameter=tweets_format,
                                                   tweets=new_tweets)
         context = {
