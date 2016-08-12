@@ -32,27 +32,6 @@ class LoginView(MethodUtils,View):
             return redirect('/')
 
 
-class MainTweet(MethodUtils,View):
-    def get(self,request):
-        token = request.session.get('access_token')
-        if not token:
-            return redirect('login')
-        self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
-        access_token = request.session.get('access_token')
-        self.auth.set_access_token(access_token[0],access_token[1])
-        self.api = tw.API(self.auth)
-        new_tweets = self.api.home_timeline(count = 100)
-        tweets_format = self.tweet_formatter(new_tweets)
-        recommender,accuracy = self.training_tweets_categories()
-        # tweets = self.tweet_formatter_training(new_tweets)
-        # recommender = self.training(tweets)
-        tweets_recommends = self.recommend_tweets(recommender=recommender,tweets_parameter=tweets_format,tweets=new_tweets)
-        context = {
-            'tweets':tweets_recommends,
-            'accuracy':accuracy
-        }
-        return render(request=request,template_name='tweets/tweet_classifier.html',context=context)
-
 class TrainningTweets(MethodUtils,View):
     def get(self,request):
         token = request.session.get('access_token')
@@ -82,6 +61,27 @@ class TrainningTweets(MethodUtils,View):
                 tweet.categoria.add(Categorias.objects.get(pk = data.get('category_id')))
                 tweet.save()
         return HttpResponse('Conseguido')
+
+class MainTweet(MethodUtils,View):
+    def get(self,request):
+        token = request.session.get('access_token')
+        if not token:
+            return redirect('login')
+        self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
+        access_token = request.session.get('access_token')
+        self.auth.set_access_token(access_token[0],access_token[1])
+        self.api = tw.API(self.auth)
+        new_tweets = self.api.home_timeline(count = 100)
+        tweets_format = self.tweet_formatter(new_tweets)
+        recommender,accuracy = self.training_tweets_categories()
+        # tweets = self.tweet_formatter_training(new_tweets)
+        # recommender = self.training(tweets)
+        tweets_recommends = self.recommend_tweets(recommender=recommender,tweets_parameter=tweets_format,tweets=new_tweets)
+        context = {
+            'tweets':tweets_recommends,
+            'accuracy':accuracy
+        }
+        return render(request=request,template_name='tweets/tweet_classifier.html',context=context)
 
 class TextMining(MethodUtils,View):
     def get(self, request):

@@ -10,6 +10,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.svm.classes import SVC
 
+from tweets import text_mining
 from tweets.models import TweetModel, Autores, Categorias
 
 
@@ -142,18 +143,6 @@ class MethodUtils(object):
         training_vector = self.from_tweet_api_to_model(training_vector)
         return training_vector
 
-    def recommend_tweets(self, recommender, tweets_parameter, tweets):
-        predicted_vector = recommender.predict(tweets_parameter)
-        categorias  = Categorias.objects.all().order_by('pk')
-        tweets_classified = [{'tweet':build_from_tweepy_without_save(tweet),'categorias':[]} for tweet in tweets]
-        index_categories = np.where(predicted_vector == 1)
-        for label in xrange(len(index_categories[0])):
-            aux = tweets_classified[index_categories[0][label]]['categorias']
-            label_ = index_categories[1][label]
-            categorias_ = categorias[int(label_)]
-            aux.append(categorias_)
-        return  tweets_classified
-
 
     def tweet_formatter_training(self, tweets):
         roi_prepare = []
@@ -161,7 +150,6 @@ class MethodUtils(object):
             roi_prepare.append([i.author_id, i.retweets, i.retweeted])
         roi_prepare_aux = np.array(roi_prepare)
         return roi_prepare_aux
-
 
     def from_tweet_api_to_model(self, list_tweets):
         aux_list_tweets = []
@@ -193,11 +181,43 @@ class MethodUtils(object):
         clasif.fit(tweet_features, tweet_label)
         return clasif,accuracy
 
-    def training_tweets_categories_text_minig(self):
-        pipeline = Pipeline([
 
-        ])
+    def recommend_tweets(self, recommender, tweets_parameter, tweets):
+        predicted_vector = recommender.predict(tweets_parameter)
+        categorias  = Categorias.objects.all().order_by('pk')
+        tweets_classified = [{'tweet':build_from_tweepy_without_save(tweet),'categorias':[]} for tweet in tweets]
+        index_categories = np.where(predicted_vector == 1)
+        for label in xrange(len(index_categories[0])):
+            aux = tweets_classified[index_categories[0][label]]['categorias']
+            label_ = index_categories[1][label]
+            categorias_ = categorias[int(label_)]
+            aux.append(categorias_)
+        return tweets_classified
 
+    def training_tweets_categories_text_mining(self):
+        pipeline = text_mining.get_pipeline()
+        tweets = TweetModel.objects.filter(autor__lang='es').exclude(categoria=None).order_by('pk')
+        label = np.array([ [1 if categ in t.categoria.all() else 0 for categ in Categorias.objects.all().order_by('pk')] for t in tweets.select_related('autor') ])
+        tweet_features = tweets.values_list('text', flat=True)
+        scores = cross_val_score(pipeline, tweet_features, label, cv=5)
+        pipeline.fit(tweet_features, label)
+        accuracy = {'mean': scores.mean(), 'std': scores.std() * 2}
+        return pipeline,accuracy
+
+    def tweet_formatter_text_mining(self,new_tweets):
+        return np.array([t.text for t in new_tweets])
+
+    def recommend_tweets_text_mining(self,recommender, tweets_parameter, tweets):
+        predicted_vector = recommender.predict(tweets_parameter)
+        categorias = Categorias.objects.all().order_by('pk')
+        tweets_classified = [{'tweet': build_from_tweepy_without_save(tweet), 'categorias': []} for tweet in tweets]
+        index_categories = np.where(predicted_vector == 1)
+        for label in xrange(len(index_categories[0])):
+            aux = tweets_classified[index_categories[0][label]]['categorias']
+            label_ = index_categories[1][label]
+            categorias_ = categorias[int(label_)]
+            aux.append(categorias_)
+        return tweets_classified
 # Este metodo se puede refactorizar para que sea mas limpio, en lugar de concatenando al final creandolo de primeras con todas las posiciones en 0 e ir
 # anadiendo lo necesario
     def tweet_model_to_predict_vector(self, tweet_model):
@@ -211,6 +231,16 @@ class MethodUtils(object):
         label = np.array([ 1 if categ in tweet_model.categoria.all() else 0for categ in Categorias.objects.all().order_by('pk')])
         return features_vector, label
 
+    def tweet_model_to_predict_vector_text_mining(self,tweet_model):
+        autores = np.zeros(len(self.autores))
+        autores[self.autores.index(tweet_model.autor.id_autor)] = 1
+        rt_vector = np.zeros(3)
+        rt_vector[
+            0 if tweet_model.retweets < 20 else 1 if tweet_model.retweets < 50 else 2] = 1
+        media = np.array([1 if tweet_model.media else 0])
+        features_vector = np.concatenate((autores, rt_vector, media), axis=0)
+        label = np.array([ 1 if categ in tweet_model.categoria.all() else 0for categ in Categorias.objects.all().order_by('pk')])
+        return features_vector, label
 
     def new_tweet_model_to_classifier(self, tweet_model):
         autores = np.zeros(len(self.autores))
