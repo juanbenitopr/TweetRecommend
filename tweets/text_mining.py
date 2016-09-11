@@ -11,6 +11,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm.classes import SVC, LinearSVC
 
 # Este módulo simplemente tienes los métodos para usar las técnicas de text mining..., el tokenize, las stop_words etc...
+from tweets.models import TextWord
+
+
 def get_stop_words():
     return stopwords.words('spanish')
 
@@ -51,13 +54,30 @@ def get_pipeline():
                                 min_df=50,
                                 max_df=1.9,
                                 ngram_range=(1, 1),
-                                max_features=1000)
+                                max_features=100000)
     pipeline = Pipeline([
         ('vectorize', vectorize),
-        ('onevsall', OneVsRestClassifier( LinearSVC(C=.2, loss='squared_hinge',max_iter=1000,multi_class='ovr',
-             random_state=None,
-             penalty='l2',
-             tol=0.0001
-             )))
+        ('onevsall', OneVsRestClassifier(SVC(kernel='rbf',C=1)))
     ])
     return pipeline
+
+
+def save_special_word(non_words, snow, tweet):
+    words = word_tokenize(tweet.text, language='spanish')
+    tweet_categoria_all = tweet.categoria.all()
+    for w in words:
+        save_word_in_category(non_words, snow, tweet_categoria_all, w)
+
+
+def save_word_in_category(non_words, snow, tweet_categoria_all, w):
+    word_stem = snow.stem(w)
+    if isWgoodWord(non_words, w, word_stem):
+        for cat in tweet_categoria_all:
+            word_db, created = TextWord.objects.get_or_create(word=word_stem, categoria=cat)
+            if not created:
+                word_db.repeticiones += 1
+                word_db.save()
+
+
+def isWgoodWord(non_words, w, word_stem):
+    return w not in stopwords.words('spanish') and w not in non_words and word_stem not in stopwords.words('spanish')

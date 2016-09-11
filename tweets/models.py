@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models.base import Model
 from django.db.models.fields import CharField, IntegerField, NullBooleanField, DateTimeField
 from django.db.models.fields.related import ForeignKey, ManyToManyField
+from matplotlib.cbook import unique
 
 
 class Person_interest(Model):
@@ -42,3 +43,12 @@ class TweetModel (Model):
     categoria = ManyToManyField(Categorias,blank=True)
     media = NullBooleanField()
     url = NullBooleanField()
+
+class TextWord(Model):
+    word = CharField(max_length=30)
+    categoria = ForeignKey(Categorias)
+    repeticiones = IntegerField(default=1)
+    def __unicode__(self):
+        return str(self.repeticiones)+' '+self.word
+    class Meta:
+        unique_together = ("word","categoria")

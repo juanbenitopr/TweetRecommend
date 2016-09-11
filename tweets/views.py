@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+from nltk.stem.snowball import SnowballStemmer
 from pandas import json
 
 from django.http.response import HttpResponse
@@ -8,9 +9,12 @@ import tweepy as tw
 import numpy as np
 from MethodUtils import MethodUtils
 from tweets.MethodUtils import from_tweet_template_to_model
-from tweets.models import TweetModel, Categorias
+from tweets.models import TweetModel, Categorias, TextWord
 
 #Vista de login para twitter esta vista la he implementado porque tenía como objetivo que fuese multiusuario aunque lo fui desechando poco a poco
+from tweets.text_mining import save_special_word, get_non_words
+
+
 class LoginView(MethodUtils,View):
     def get(self,request):
         try:
@@ -55,6 +59,8 @@ class TrainningTweets(MethodUtils,View):
     def post(self,request):
         data_send = str(request.POST.get('data_send'))
         json_data = json.loads(data_send)
+        non_words = get_non_words()
+        snow_stem = SnowballStemmer('spanish')
         for data in json_data:
             tweet = TweetModel.objects.get(tweet_id=data.get('tweet_id'))
             if 'retweeted' in data:
@@ -63,6 +69,9 @@ class TrainningTweets(MethodUtils,View):
             elif 'category_id' in data :
                 tweet.categoria.add(Categorias.objects.get(pk = data.get('category_id')))
                 tweet.save()
+        for data in json_data:
+            tweet = TweetModel.objects.get(tweet_id=data.get('tweet_id'))
+            save_special_word(non_words, snow=snow_stem, tweet=tweet)
         return HttpResponse('Conseguido')
 
 #Muestra los tweets clasificados en cada categoría con la precisión que nos da este clasificador
@@ -105,3 +114,32 @@ class TextMining(MethodUtils,View):
             'accuracy': accuracy
         }
         return render(request=request, template_name='tweets/tweet_classifier.html', context=context)
+
+class SuperTextMining(MethodUtils,View):
+    def get(self,request):
+        token = request.session.get('access_token')
+        if not token:
+            return redirect('login')
+        self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
+        access_token = request.session.get('access_token')
+        self.auth.set_access_token(access_token[0], access_token[1])
+        self.api = tw.API(self.auth)
+        new_tweets = self.api.home_timeline(count=100)
+        tweets_format = self.tweet_formatter_super_text(new_tweets)
+        recommender, accuracy = self.training_tweets_categories_super_text()
+        tweets_recommends = self.recommend_tweets_super_text(recommender=recommender, tweets_parameter=tweets_format,
+                                                  tweets=new_tweets)
+        context = {
+            'tweets': tweets_recommends,
+            'accuracy': accuracy
+        }
+        return render(request=request, template_name='tweets/tweet_classifier.html', context=context)
+
+class MetricsView(MethodUtils,View):
+    def get(self,request):
+        accuracy = self.get_best_metrics()
+        context = {
+            'accuracy': accuracy
+
+        }
+        return render(request=request, template_name='tweets/tweet_metrics.html', context=context)
