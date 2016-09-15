@@ -16,14 +16,16 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-from tweets.views import MainTweet, TrainningTweets, LoginView,TextMining, SuperTextMining, MetricsView
+from tweets.views import TrainningTweets, LoginView, Classifier, MetricsView, CategoriesView, CategoriaClassifierView, \
+    MetricsOneCategoria
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^new_tweets$', TrainningTweets.as_view(), name='new_tweets'),
-    url(r'^$', MainTweet.as_view(), name=''),
+    url(r'^$', TrainningTweets.as_view(), name='new_tweets'),
     url(r'^login$', LoginView.as_view(), name='login'),
-    url(r'^text_mining$',TextMining.as_view(),name='text_mining'),
-    url(r'^super_text_mining$',SuperTextMining.as_view(),name='text_mining'),
-    url(r'^metrics$',MetricsView.as_view(),name='metrics')
+    url(r'^classifier$',Classifier.as_view(),name='text_mining'),
+    url(r'^metrics$',MetricsView.as_view(),name='metrics'),
+    url(r'^categorias$',CategoriesView.as_view(),name='categorias'),
+    url(r'^categoria_classifier/([0-9]+)$',CategoriaClassifierView.as_view(),name='categoria_classifier'),
+    url(r'^metrics_one_categorie$',MetricsOneCategoria.as_view(),name='metrics_one_categorie')
 ]

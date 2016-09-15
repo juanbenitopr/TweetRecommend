@@ -6,17 +6,9 @@ from django.db import models
 from django.db.models.base import Model
 from django.db.models.fields import CharField, IntegerField, NullBooleanField, DateTimeField
 from django.db.models.fields.related import ForeignKey, ManyToManyField
-from matplotlib.cbook import unique
-
-
-class Person_interest(Model):
-    id_person = IntegerField()
-    name = CharField(max_length=150)
-    def __unicode__(self):
-        return self.name
 
 class Autores(Model):
-    id_autor    = IntegerField(unique=True)
+    id_autor = IntegerField(unique=True)
     name = CharField(max_length=150)
     lang = CharField(max_length=10,default='es')
     friends_count = IntegerField()

@@ -12,6 +12,11 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.svm.classes import SVC
 
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+import matplotlib.pyplot as plt
+
 from tweets import text_mining
 from tweets.models import TweetModel, Autores, Categorias, TextWord
 
@@ -320,35 +325,6 @@ class MethodUtils(object):
         accuracy= {'mean':score.mean(),'std':score.std() * 2}
         return clasif, accuracy
 
-
-    def get_best_metrics(self):
-        self.autores = [a.id_autor for a in Autores.objects.all().order_by('pk')]
-        self.categorias = Categorias.objects.exclude(name="Social")
-        tweets = TweetModel.objects.exclude(categoria=None).exclude(categoria__name="Social")
-        tweet_features = np.zeros((len(tweets), len(self.autores) + 3 + 1 + 30 * self.categorias.count()))
-
-        tweet_label = np.zeros((len(tweets), len(self.categorias)))
-        count = 0
-        for t in tweets.select_related('autor'):
-            features, label = self.tweet_model_to_predict_vector_super_text(t)
-            tweet_features[count, :] = features
-            tweet_label[count, :] = label
-            count += 1
-        tuned_parameters = [{'estimator__kernel': ['rbf'], 'estimator__gamma': [1e-3, 1e-4],
-                             'estimator__C': [1, 10, 100, 1000]},
-                            {'estimator__kernel': ['linear'], 'estimator__C': [1, 10, 100, 1000]}]
-        # scores = ['f1_weighted','f1_samples']
-        scores = ['f1_weighted','f1_samples', 'precision_weighted','precision_samples', 'recall_weighted','recall_samples']
-
-        accuracy = {}
-        for sc in scores:
-            clasif = GridSearchCV(OneVsRestClassifier(SVC(C=1)), tuned_parameters, cv=5, scoring=sc)
-            clasif.fit(tweet_features, tweet_label)
-            accuracy[sc] = {'params': clasif.best_params_, 'mean_' + sc: clasif.best_score_.mean(),
-                        'std_' + sc: clasif.best_score_.std() * 2}
-        return accuracy
-
-
     # Este método concretamente es el que extrae las features de lo tweets ya guardados
     def tweet_model_to_predict_vector_super_text(self, tweet_model):
         autores = np.zeros(len(self.autores))
@@ -380,3 +356,127 @@ class MethodUtils(object):
             categorias_ = categorias[int(label_)]
             aux.append(categorias_)
         return tweets_classified
+
+
+    def training_tweets_categorie(self,categorie):
+        self.autores = [a.id_autor for a in Autores.objects.all().order_by('pk')]
+        self.categorie = categorie
+        self.categorias = Categorias.objects.exclude(name='Social')
+        tweets = TweetModel.objects.exclude(categoria=None).exclude(categoria__name="Social")
+        tweet_features = np.zeros((len(tweets), len(self.autores) + 3 + 1 + 30 *self.categorias.count()))
+        tweet_label = np.zeros(len(tweets))
+        count = 0
+        for t in tweets.select_related('autor'):
+            features, label = self.tweet_model_to_predict_vector_categorie(t)
+            tweet_features[count, :] = features
+            tweet_label[count] = label
+            count += 1
+
+        clasif = SVC(kernel='linear', C=1000, gamma=0.001)
+        clasif.fit(tweet_features, tweet_label)
+        score = cross_val_score(clasif, tweet_features, tweet_label, cv=5)
+        accuracy = {'mean': score.mean(), 'std': score.std() * 2}
+        return clasif, accuracy
+
+
+    def tweet_model_to_predict_vector_categorie(self, tweet_model):
+        autores = np.zeros(len(self.autores))
+        autores[self.autores.index(tweet_model.autor.id_autor)] = 1
+        rt_vector = np.zeros(3)
+        rt_vector[
+            0 if tweet_model.retweets < 20 else 1 if tweet_model.retweets < 50 else 2] = 1
+        media = np.array([1 if tweet_model.media else 0])
+        array_word_features = np.array(
+            [1 if word.word in tweet_model.text else 0 for categoria in self.categorias for word in
+             TextWord.objects.filter(categoria=categoria).exclude(word='https').exclude(word='rt').order_by(
+                 'repeticiones')[:30]])
+        features_vector = np.concatenate((autores, rt_vector, media, array_word_features), axis=0)
+        label = 1 if tweet_model.categoria.filter(pk=self.categorie.pk).count() else 0
+        # label = np.array(
+        #     [1 if tweet_model.categoria.filter(pk=self.categorie.pk).count() else 0])
+        return features_vector,label
+
+
+    def recommend_tweets_categorie(self, recommender, tweets_parameter, tweets):
+        predicted_vector = recommender.predict(tweets_parameter)
+        tweets_classified = []
+        tweets_predicted = np.where(predicted_vector == 1)[0]
+        for tweet_predicted in tweets_predicted:
+            tweets_classified.append(build_from_tweepy_without_save(tweets[tweet_predicted]))
+        return tweets_classified
+
+
+
+    def get_best_metrics(self):
+        self.autores = [a.id_autor for a in Autores.objects.all().order_by('pk')]
+        self.categorias = Categorias.objects.exclude(name="Social")
+        tweets = TweetModel.objects.exclude(categoria=None).exclude(categoria__name="Social")
+        tweet_features = np.zeros((len(tweets), len(self.autores) + 3 + 1 + 30 * self.categorias.count()))
+
+        tweet_label = np.zeros((len(tweets), len(self.categorias)))
+        count = 0
+        for t in tweets.select_related('autor'):
+            features, label = self.tweet_model_to_predict_vector_super_text(t)
+            tweet_features[count, :] = features
+            tweet_label[count, :] = label
+            count += 1
+        tuned_parameters = [{'estimator__kernel': ['rbf'], 'estimator__gamma': [1e-3, 1e-4],
+                             'estimator__C': [1, 10, 100, 1000]},
+                            {'estimator__kernel': ['linear'], 'estimator__C': [1, 10, 100, 1000]}]
+        # scores = ['f1_weighted','f1_samples']
+        scores = ['f1_weighted', 'f1_samples', 'precision_weighted', 'precision_samples', 'recall_weighted',
+                  'recall_samples']
+
+        accuracy = {}
+        for sc in scores:
+            clasif = GridSearchCV(OneVsRestClassifier(SVC(C=1)), tuned_parameters, cv=5, scoring=sc)
+            clasif.fit(tweet_features, tweet_label)
+            accuracy[sc] = {'params': clasif.best_params_, 'mean_' + sc: clasif.best_score_.mean(),
+                            'std_' + sc: clasif.best_score_.std() * 2}
+        return accuracy
+
+
+    def get_best_metrics_categorie(self):
+        self.autores = [a.id_autor for a in Autores.objects.all().order_by('pk')]
+        self.categorias = Categorias.objects.exclude(name='Social')
+        tweets = TweetModel.objects.exclude(categoria=None).exclude(categoria__name="Social")
+        accuracy = {}
+        count_plot = 1
+        for categorie in self.categorias:
+            self.categorie = categorie
+            accuracy[categorie.name] = {}
+            tweet_features = np.zeros((len(tweets), len(self.autores) + 3 + 1 + 30 *self.categorias.count()))
+            tweet_label = np.zeros(len(tweets))
+            count = 0
+            for t in tweets.select_related('autor'):
+                features, label = self.tweet_model_to_predict_vector_categorie(t)
+                tweet_features[count, :] = features
+                tweet_label[count] = label
+                count += 1
+            C_parameter = [1, 10, 100, 1000]
+            gamma_parameter = [1e-3]
+            tuned_parameters = [{'kernel': ['rbf'], 'gamma': gamma_parameter,
+                                 'C': C_parameter},
+                                {'kernel': ['linear'], 'C': C_parameter}]
+            scores = ['roc_auc','accuracy','f1','precision']
+            # scores = ['f1', 'average_precision', 'roc_auc', 'recall', 'precision',
+            #           'accuracy']
+            kernel_parameter = ['rbf','linear']
+            for sc in scores:
+                clasif = GridSearchCV(SVC(C=1), tuned_parameters, cv=5, scoring=sc)
+                clasif.fit(tweet_features, tweet_label)
+
+                grid_score =  np.array([x[1] for x in clasif.grid_scores_]).reshape(len(kernel_parameter),len(C_parameter))
+                plt.figure(count_plot)
+                for ind,kernel in enumerate(grid_score):
+                    plt.plot(C_parameter, kernel,label=kernel_parameter[ind])
+                plt.legend()
+                plt.xlabel('C_parameter')
+                plt.ylabel('Mean score')
+                f = FigureCanvasAgg(plt.figure(count_plot))
+                f.print_png(sc+'_'+categorie.name+'.png')
+                plt.close(count_plot)
+                count_plot+=1
+                accuracy[categorie.name][sc] = {'params': clasif.best_params_, 'mean_' + sc: clasif.best_score_.mean(),
+                                        'std_' + sc: clasif.best_score_.std() * 2}
+        return accuracy

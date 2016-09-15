@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block section%}
+<h2>Precision: {{accuracy.mean}}+/-{{accuracy.std}}</h2>
+<div class="row">
+    {% for tweet in tweets %}
+    {% if forloop.counter0|divisibleby:2%}
+</div>
+<div class="row">
+    {% endif %}
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4>{{tweet.autor_name}}</h4>
+            </div>
+            <div class="panel-body" style="height:380px">
+                <p>{{tweet.text}}</p>
+                {% if tweet.media %}
+                {% if tweet.type_media == 'photo' %}
+                <img src="{{tweet.url_media}}" alt="{{tweet.url_media}}" class="img-custom">
+                {% endif %}
+                {% endif %}
+            </div>
+            <div id="{{tweet.tweet_id}}" class="panel-footer">
+                <p>{{tweet.n_rt}}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endblock %}

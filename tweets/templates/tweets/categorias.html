@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block section%}
+
+{% for categoria in categorias %}
+<div class="well" style="padding-left:10px">
+    <h3><a href="http://localhost:4000/categoria_classifier/{{categoria.pk}}" id="{{categoria.pk}}" class="categoria">{{categoria.name}}</a></h3>
+</div>
+
+{% endfor %}
+{% endblock %}

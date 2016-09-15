@@ -115,7 +115,7 @@ class TextMining(MethodUtils,View):
         }
         return render(request=request, template_name='tweets/tweet_classifier.html', context=context)
 
-class SuperTextMining(MethodUtils,View):
+class Classifier(MethodUtils,View):
     def get(self,request):
         token = request.session.get('access_token')
         if not token:
@@ -143,3 +143,42 @@ class MetricsView(MethodUtils,View):
 
         }
         return render(request=request, template_name='tweets/tweet_metrics.html', context=context)
+
+class CategoriesView(View):
+    def get(self,request):
+        categorias = Categorias.objects.exclude(name='Social')
+        context = {
+            'categorias':categorias
+        }
+        return render(request,template_name='tweets/categorias.html',context=context)
+
+class CategoriaClassifierView(MethodUtils,View):
+    def get(self,request,pk):
+        token = request.session.get('access_token')
+        if not token:
+            return redirect('login')
+        categoria = Categorias.objects.get(pk=pk)
+        self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
+        access_token = request.session.get('access_token')
+        self.auth.set_access_token(access_token[0], access_token[1])
+        self.api = tw.API(self.auth)
+        new_tweets = self.api.home_timeline(count=100)
+        tweets_format = self.tweet_formatter_super_text(new_tweets)
+        recommender, accuracy = self.training_tweets_categorie(categoria)
+        tweets_recommends = self.recommend_tweets_categorie(recommender=recommender, tweets_parameter=tweets_format,
+                                                             tweets=new_tweets)
+
+        context = {
+            'tweets': tweets_recommends,
+            'accuracy': accuracy
+        }
+        return render(request=request, template_name='tweets/tweet_classifier_one_category.html', context=context)
+
+class MetricsOneCategoria(MethodUtils,View):
+    def get(self, request):
+        accuracy = self.get_best_metrics_categorie()
+        context = {
+            'accuracy': accuracy
+
+        }
+        return render(request=request, template_name='tweets/tweet_metrics_one_category.html', context=context)

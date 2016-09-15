@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block section%}
+{% for key_categoria,categoria in accuracy.items %}
+    </div>
+
+<h1>Precision: {{key_categoria}} </h1>
+ <div class="row">
+{% for name,value in categoria.items %}
+        {% if forloop.counter0|divisibleby:2%}
+    </div>
+    <div class="row">
+        {% endif %}
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4>{{name}}</h4>
+                </div>
+                <div class="panel-body">
+                    {% for name_metric,name_value in value.items %}
+                    <p>{{name_metric}}: {{name_value}}</p>
+                    {% endfor %}
+                </div>
+        </div>
+    </div>
+    {% endfor %}
+        {% endfor %}
+{% endblock %}

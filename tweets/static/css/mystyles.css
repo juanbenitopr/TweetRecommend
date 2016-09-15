@@ -9,10 +9,9 @@
   
   .img-custom {
       margin-bottom: 10px;
-      object-fit: fill;
+      object-fit: contain;
       object-position: center;
-      height: 400px;
-      width: 490px;
+      height: 300px;
   }
 .avatar{
     object-fit: contain; 

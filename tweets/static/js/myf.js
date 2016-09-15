@@ -42,7 +42,6 @@ $(function () {
     })
 })
 
-
 function send_data_url(data_send, url) {
     var csrftoken = getCookie('csrftoken')
     $.ajaxSetup({
