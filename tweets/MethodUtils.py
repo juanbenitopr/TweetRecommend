@@ -5,6 +5,7 @@ import time
 import numpy as np
 import tweepy as tw
 from django.shortcuts import redirect
+from matplotlib.font_manager import FontProperties
 from sklearn import svm
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.grid_search import GridSearchCV
@@ -130,7 +131,6 @@ def from_tweet_template_to_model(list_tweets):
 class MethodUtils(object):
     # Métodos de autenticación para tweepy
     def authentication(self, request):
-
         self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
         try:
             redirect_url = self.auth.get_authorization_url()
@@ -239,18 +239,6 @@ class MethodUtils(object):
 
     def tweet_formatter_text_mining(self, new_tweets):
         return np.array([t.text for t in new_tweets])
-
-    def training_tweets_categories_text_mining(self):
-        pipeline = text_mining.get_pipeline()
-        tweets = TweetModel.objects.filter(autor__lang='es').exclude(categoria=None).order_by('pk')
-        label = np.array(
-            [[1 if categ in t.categoria.all() else 0 for categ in Categorias.objects.all().order_by('pk')] for t in
-             tweets.select_related('autor')])
-        tweet_features = tweets.values_list('text', flat=True)
-        scores = cross_val_score(pipeline, tweet_features, label, cv=5)
-        pipeline.fit(tweet_features, label)
-        accuracy = {'mean': scores.mean(), 'std': scores.std() * 2}
-        return pipeline, accuracy
 
     def recommend_tweets_text_mining(self, recommender, tweets_parameter, tweets):
         predicted_vector = recommender.predict(tweets_parameter)
@@ -415,24 +403,44 @@ class MethodUtils(object):
 
         tweet_label = np.zeros((len(tweets), len(self.categorias)))
         count = 0
+        count_plot = 0
+        fontP = FontProperties()
+        fontP.set_size('small')
+        styles= ['-', '--',':']
         for t in tweets.select_related('autor'):
             features, label = self.tweet_model_to_predict_vector_super_text(t)
             tweet_features[count, :] = features
             tweet_label[count, :] = label
             count += 1
-        tuned_parameters = [{'estimator__kernel': ['rbf'], 'estimator__gamma': [1e-3, 1e-4],
-                             'estimator__C': [1, 10, 100, 1000]},
-                            {'estimator__kernel': ['linear'], 'estimator__C': [1, 10, 100, 1000]}]
+        C_parameter = [1, 10, 100, 1000]
+        tuned_parameters = [{'estimator__kernel': ['rbf'], 'estimator__gamma': [1e-3],
+                             'estimator__C': C_parameter},
+                            {'estimator__kernel': ['linear'], 'estimator__C': C_parameter}]
         # scores = ['f1_weighted','f1_samples']
-        scores = ['f1_weighted', 'f1_samples', 'precision_weighted', 'precision_samples', 'recall_weighted',
-                  'recall_samples']
+        scores = ['f1_weighted','roc_auc']
 
         accuracy = {}
+        kernel_parameter = ['rbf', 'linear']
+        colors = ['blue','red']
+        count_style = 0
         for sc in scores:
             clasif = GridSearchCV(OneVsRestClassifier(SVC(C=1)), tuned_parameters, cv=5, scoring=sc)
             clasif.fit(tweet_features, tweet_label)
+            grid_score = np.array([x[1] for x in clasif.grid_scores_]).reshape(len(kernel_parameter), len(C_parameter))
+            plt.figure(count_plot)
+            for ind, kernel in enumerate(grid_score):
+                plt.semilogx(C_parameter, kernel, label=sc + '_' + kernel_parameter[ind],color=colors[ind],linestyle=styles[count_style])
+            plt.legend(loc='center left', bbox_to_anchor=(0.5, 0.1), prop=fontP)
+            plt.xlabel('C_parameter')
+            plt.ylabel('Mean score')
+            plt.grid(True,which='both')
+            f = FigureCanvasAgg(plt.figure(count_plot))
+            f.print_png('Multilabel.png')
             accuracy[sc] = {'params': clasif.best_params_, 'mean_' + sc: clasif.best_score_.mean(),
                             'std_' + sc: clasif.best_score_.std() * 2}
+            count_style += 1
+        plt.close(count_plot)
+        count_plot+=1
         return accuracy
 
 
@@ -441,7 +449,11 @@ class MethodUtils(object):
         self.categorias = Categorias.objects.exclude(name='Social')
         tweets = TweetModel.objects.exclude(categoria=None).exclude(categoria__name="Social")
         accuracy = {}
+        fontP = FontProperties()
+        fontP.set_size('small')
         count_plot = 1
+        colors = ['blue','red']
+        styles= ['-', '--',':']
         for categorie in self.categorias:
             self.categorie = categorie
             accuracy[categorie.name] = {}
@@ -458,10 +470,11 @@ class MethodUtils(object):
             tuned_parameters = [{'kernel': ['rbf'], 'gamma': gamma_parameter,
                                  'C': C_parameter},
                                 {'kernel': ['linear'], 'C': C_parameter}]
-            scores = ['roc_auc','accuracy','f1','precision']
+            scores = ['roc_auc','accuracy']
             # scores = ['f1', 'average_precision', 'roc_auc', 'recall', 'precision',
             #           'accuracy']
             kernel_parameter = ['rbf','linear']
+            count_style = 0
             for sc in scores:
                 clasif = GridSearchCV(SVC(C=1), tuned_parameters, cv=5, scoring=sc)
                 clasif.fit(tweet_features, tweet_label)
@@ -469,14 +482,18 @@ class MethodUtils(object):
                 grid_score =  np.array([x[1] for x in clasif.grid_scores_]).reshape(len(kernel_parameter),len(C_parameter))
                 plt.figure(count_plot)
                 for ind,kernel in enumerate(grid_score):
-                    plt.plot(C_parameter, kernel,label=kernel_parameter[ind])
-                plt.legend()
+                    plt.semilogx(C_parameter, kernel,label=sc+'_'+kernel_parameter[ind],color=colors[ind],linestyle=styles[count_style])
+                plt.legend(loc='center left', bbox_to_anchor=(0, 0.1),prop = fontP)
                 plt.xlabel('C_parameter')
                 plt.ylabel('Mean score')
+                plt.grid(True, which='both')
                 f = FigureCanvasAgg(plt.figure(count_plot))
-                f.print_png(sc+'_'+categorie.name+'.png')
-                plt.close(count_plot)
-                count_plot+=1
+                f.print_png(categorie.name+'.png')
                 accuracy[categorie.name][sc] = {'params': clasif.best_params_, 'mean_' + sc: clasif.best_score_.mean(),
                                         'std_' + sc: clasif.best_score_.std() * 2}
+                count_style+=1
+            plt.close(count_plot)
+            count_plot += 1
+
+
         return accuracy

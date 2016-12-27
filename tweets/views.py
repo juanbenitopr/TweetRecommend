@@ -84,7 +84,7 @@ class MainTweet(MethodUtils,View):
         access_token = request.session.get('access_token')
         self.auth.set_access_token(access_token[0],access_token[1])
         self.api = tw.API(self.auth)
-        new_tweets = self.api.home_timeline(count = 100)
+        new_tweets = self.api.home_timeline(count = 10)
         tweets_format = self.tweet_formatter(new_tweets)
         recommender,accuracy = self.training_tweets_categories()
         tweets_recommends = self.recommend_tweets(recommender=recommender,tweets_parameter=tweets_format,tweets=new_tweets)
@@ -95,36 +95,36 @@ class MainTweet(MethodUtils,View):
         return render(request=request,template_name='tweets/tweet_classifier.html',context=context)
 
 #Muestra lo mismo que la anterior pero utilizando técnicas de text-mining, en estructura es básicamente igual que la anterior
-class TextMining(MethodUtils,View):
-    def get(self, request):
-        token = request.session.get('access_token')
-        if not token:
-            return redirect('login')
-        self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
-        access_token = request.session.get('access_token')
-        self.auth.set_access_token(access_token[0], access_token[1])
-        self.api = tw.API(self.auth)
-        new_tweets = self.api.home_timeline(count=100)
-        tweets_format = self.tweet_formatter_text_mining(new_tweets)
-        recommender, accuracy = self.training_tweets_categories_text_mining()
-        tweets_recommends = self.recommend_tweets_text_mining(recommender=recommender, tweets_parameter=tweets_format,
-                                                  tweets=new_tweets)
-        context = {
-            'tweets': tweets_recommends,
-            'accuracy': accuracy
-        }
-        return render(request=request, template_name='tweets/tweet_classifier.html', context=context)
+# class TextMining(MethodUtils,View):
+#     def get(self, request):
+#         token = request.session.get('access_token')
+#         if not token:
+#             return redirect('login')
+#         self.auth = tw.OAuthHandler('customer-key', 'secret-key')
+#         access_token = request.session.get('access_token')
+#         self.auth.set_access_token(access_token[0], access_token[1])
+#         self.api = tw.API(self.auth)
+#         new_tweets = self.api.home_timeline(count=100)
+#         tweets_format = self.tweet_formatter_text_mining(new_tweets)
+#         recommender, accuracy = self.training_tweets_categories_text_mining()
+#         tweets_recommends = self.recommend_tweets_text_mining(recommender=recommender, tweets_parameter=tweets_format,
+#                                                   tweets=new_tweets)
+#         context = {
+#             'tweets': tweets_recommends,
+#             'accuracy': accuracy
+#         }
+#         return render(request=request, template_name='tweets/tweet_classifier.html', context=context)
 
 class Classifier(MethodUtils,View):
     def get(self,request):
         token = request.session.get('access_token')
         if not token:
             return redirect('login')
-        self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
+        self.auth = tw.OAuthHandler('secret-key', 'customer-key')
         access_token = request.session.get('access_token')
         self.auth.set_access_token(access_token[0], access_token[1])
         self.api = tw.API(self.auth)
-        new_tweets = self.api.home_timeline(count=100)
+        new_tweets = self.api.home_timeline(count=10)
         tweets_format = self.tweet_formatter_super_text(new_tweets)
         recommender, accuracy = self.training_tweets_categories_super_text()
         tweets_recommends = self.recommend_tweets_super_text(recommender=recommender, tweets_parameter=tweets_format,
@@ -158,11 +158,11 @@ class CategoriaClassifierView(MethodUtils,View):
         if not token:
             return redirect('login')
         categoria = Categorias.objects.get(pk=pk)
-        self.auth = tw.OAuthHandler('BgTFskBMXHsPAIzmJ6GaAICPM', 'rH1nTBTAbd8JuVyjWdDdJ3wYxV38E3Zzjj3x1zmBQtRjxdqxJI')
+        self.auth = tw.OAuthHandler('customer-key', 'secret-key')
         access_token = request.session.get('access_token')
         self.auth.set_access_token(access_token[0], access_token[1])
         self.api = tw.API(self.auth)
-        new_tweets = self.api.home_timeline(count=100)
+        new_tweets = self.api.home_timeline(count=10)
         tweets_format = self.tweet_formatter_super_text(new_tweets)
         recommender, accuracy = self.training_tweets_categorie(categoria)
         tweets_recommends = self.recommend_tweets_categorie(recommender=recommender, tweets_parameter=tweets_format,

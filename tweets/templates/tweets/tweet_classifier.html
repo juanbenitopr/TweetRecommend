@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block section%}
-<h2>Precision: {{accuracy.mean}}+/-{{accuracy.std}}</h2>
     <div class="row">
         {% for tweet in tweets %}
         {% if forloop.counter0|divisibleby:2%}
